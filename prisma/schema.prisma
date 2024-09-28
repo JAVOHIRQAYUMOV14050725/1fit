@@ -1,0 +1,94 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+  COACH
+  CUSTOMER
+}
+
+model User {
+    id                     Int      @id   @default(autoincrement())
+    user_github_platform_id String   @unique
+    firstName               String?
+    lastName                String?
+    username                String?
+    role                    Role     @default(CUSTOMER) 
+    email                   String?  @unique
+    access_token            String?
+    provider                String?
+    refresh_token           String?
+    createdAt               DateTime @default(now()) 
+    updatedAt               DateTime @updatedAt
+     adminGymId              Int?   
+      gymSport                    GymUser[]
+      sportUser                  SportUser[]
+      adminGym                   AdminGym[]
+}
+
+model Gym {
+    id         Int  @id   @default(autoincrement())
+    title      String
+    location   String
+    gymUser       GymUser[]
+    gymSport     GymSport[]
+    adminGym     AdminGym[]
+} 
+
+model Sport {
+    id          Int      @id   @default(autoincrement())
+    name        String
+    description String
+    gymSport        GymSport[]
+    sportUser      SportUser[]
+}
+
+model GymSport {
+    id         Int  @id   @default(autoincrement())
+    gym_id     Int
+    sport_id   Int
+    sport      Sport     @relation(fields: [sport_id], references: [id])
+    gym        Gym       @relation(fields: [gym_id], references: [id])
+
+  @@unique([gym_id, sport_id]) 
+}
+
+
+model GymUser {
+  id         Int  @id   @default(autoincrement())
+    gym_id     Int
+    user_id   Int
+    user      User     @relation(fields: [user_id], references: [id])
+    gym        Gym       @relation(fields: [gym_id], references: [id])
+
+  @@unique([user_id, gym_id]) 
+}
+
+model  SportUser {
+  id         Int  @id   @default(autoincrement())
+    user_id     Int
+    sport_id   Int
+    user      User     @relation(fields: [user_id], references: [id])
+    sport        Sport       @relation(fields: [sport_id], references: [id])
+
+  @@unique([user_id, sport_id]) 
+}
+
+
+model AdminGym {
+    id       Int   @id @default(autoincrement())
+    adminId  Int
+    gymId    Int
+    user     User  @relation(fields: [adminId], references: [id])
+    gym      Gym   @relation(fields: [gymId], references: [id])
+    
+    @@unique([adminId, gymId]) 
+}
